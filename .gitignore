@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+ClinicalQA_venv/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local data and outputs
+data/raw/
+data/processed/
+artifacts/
+outputs/
+
+# OS/editor files
+.DS_Store
+.idea/
+.vscode/
