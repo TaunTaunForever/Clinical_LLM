@@ -52,6 +52,22 @@ The planner prompt should:
 - forbid numerical computation
 - ask for clarification when the question is ambiguous
 
+## Schema metadata exposed to the planner
+
+The dataset schema metadata should include more than raw column names. For the bound sepsis dataset, the planner-facing payload now includes:
+
+- dataset description
+- cohort role such as training, evaluation, or held-out
+- entity grain, currently one row per sepsis episode
+- planner guidance notes
+- per-column semantic type
+- per-column synonyms for natural-language matching
+- per-column allowed operations such as filtering or grouping
+- per-column supported aggregations
+- derived-field markers and derivation notes
+
+This metadata is intended to help the planner choose user-facing fields such as `sex_label` and `mortality_flag` instead of relying on raw encoded columns unless necessary.
+
 ## Phase 1 note
 
 The codebase includes a JSON schema dictionary and typed dataclasses aligned to this document, but real planner API integration is still a TODO.

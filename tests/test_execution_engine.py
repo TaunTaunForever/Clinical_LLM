@@ -26,3 +26,38 @@ def test_execution_engine_computes_grouped_mortality_rate() -> None:
 
     assert list(result["sex"]) == ["F", "M"]
     assert list(result["mortality_rate"]) == [0.5, 1.0]
+
+
+def test_execution_engine_runs_cohort_comparison() -> None:
+    frame = pd.DataFrame(
+        {
+            "sex_label": ["male", "male", "female", "female"],
+            "mortality_flag": [1, 0, 1, 1],
+        }
+    )
+    plan = {
+        "filters": [],
+        "group_by": [],
+        "aggregations": [],
+        "comparisons": [
+            {
+                "left_filters": [{"column": "sex_label", "operator": "eq", "value": "male"}],
+                "right_filters": [{"column": "sex_label", "operator": "eq", "value": "female"}],
+                "metric": "mortality_rate",
+                "column": "mortality_flag",
+                "left_label": "male",
+                "right_label": "female",
+            }
+        ],
+        "select": [],
+        "order_by": [{"column": "difference", "direction": "asc"}],
+        "limit": None,
+    }
+
+    result = execute_plan(frame, plan).result_frame
+
+    assert list(result["left_label"]) == ["male"]
+    assert list(result["right_label"]) == ["female"]
+    assert list(result["left_value"]) == [0.5]
+    assert list(result["right_value"]) == [1.0]
+    assert list(result["difference"]) == [-0.5]

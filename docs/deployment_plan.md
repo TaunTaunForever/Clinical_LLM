@@ -30,6 +30,6 @@ Phase 1 does not include containerization, cloud deployment, authentication, or 
 
 ## TODO
 
-- define environment-variable-based planner credentials
+- document whether the fine-tuned planner will be served locally or behind a lightweight inference endpoint
 - package a simple local web or CLI demo
-- add reproducible local run instructions once a dataset is wired in
+- add reproducible local run instructions for the fine-tuned planner checkpoint

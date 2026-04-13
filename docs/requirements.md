@@ -36,6 +36,8 @@ The system should:
 - no raw row transmission to the remote planner
 - typed, testable Python modules
 - explicit rejection for unsupported plans
+- Phase 5 training stack should support adapter-based fine-tuning with reproducible train/eval/held-out splits
+- the final planner model should support schema-conditioned JSON generation reliably enough for deterministic validation
 
 ## Out of scope for v1
 

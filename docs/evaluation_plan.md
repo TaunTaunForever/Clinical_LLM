@@ -17,7 +17,8 @@ Measure:
 - execution success rate
 - failure-type breakdown
 - validator rejection breakdown
-- repair success rate if a repair loop is added
+- repair success rate
+- schema-hint enforcement rate for invalid planner outputs
 
 ## End-to-end evaluation
 
@@ -40,6 +41,13 @@ Measure:
 
 Primary evaluation data should come from the semi-synthetic generation pipeline, augmented later with manually reviewed challenge cases for ambiguity and safety.
 
-## Phase 1 status
+## Current status
 
-Only starter metric definitions and benchmark scaffolding are implemented in code. Full benchmark generation remains a TODO.
+The codebase now includes:
+
+- planner parsing and bounded repair-loop support
+- schema-aware validation with column-level operation hints
+- deterministic execution for filters, grouped aggregations, ranking, and basic cohort comparisons
+- end-to-end query flow tests
+
+Full benchmark generation and large-scale evaluation assets remain TODO.

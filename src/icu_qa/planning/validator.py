@@ -69,13 +69,25 @@ def validate_plan_dict(plan: dict[str, Any], schema: DatasetSchema) -> Validatio
     for select_item in plan.get("select", []):
         if select_item not in allowed_columns and select_item not in aggregation_aliases:
             errors.append(f"Unsupported column in select: {select_item}")
+        elif select_item in allowed_columns:
+            column_schema = schema.get_column(select_item)
+            if column_schema is not None and not column_schema.supports_select:
+                errors.append(f"Column does not support select: {select_item}")
     errors.extend(_validate_column_names(plan.get("group_by", []), allowed_columns, "group_by"))
+    for group_item in plan.get("group_by", []):
+        column_schema = schema.get_column(group_item)
+        if column_schema is not None and not column_schema.supports_group_by:
+            errors.append(f"Column does not support group_by: {group_item}")
 
     for filter_spec in plan.get("filters", []):
         column = filter_spec.get("column")
         operator = filter_spec.get("operator")
         if column not in allowed_columns:
             errors.append(f"Unsupported filter column: {column}")
+        else:
+            column_schema = schema.get_column(column)
+            if column_schema is not None and not column_schema.supports_filter:
+                errors.append(f"Column does not support filter: {column}")
         if operator not in ALLOWED_FILTER_OPERATORS:
             errors.append(f"Unsupported filter operator: {operator}")
 
@@ -87,8 +99,29 @@ def validate_plan_dict(plan: dict[str, Any], schema: DatasetSchema) -> Validatio
             errors.append(f"Unsupported aggregation: {name}")
         if column not in allowed_columns:
             errors.append(f"Unsupported aggregation column: {column}")
+        else:
+            column_schema = schema.get_column(column)
+            if column_schema is not None and name not in column_schema.supported_aggregations:
+                errors.append(f"Aggregation {name} is not supported for column: {column}")
         if not alias:
             errors.append("Aggregation alias is required")
+
+    for comparison in plan.get("comparisons", []):
+        metric = comparison.get("metric")
+        if metric not in ALLOWED_AGGREGATIONS:
+            errors.append(f"Unsupported comparison metric: {metric}")
+        for side_name in ("left_filters", "right_filters"):
+            for filter_spec in comparison.get(side_name, []):
+                column = filter_spec.get("column")
+                operator = filter_spec.get("operator")
+                if column not in allowed_columns:
+                    errors.append(f"Unsupported comparison filter column: {column}")
+                else:
+                    column_schema = schema.get_column(column)
+                    if column_schema is not None and not column_schema.supports_filter:
+                        errors.append(f"Column does not support filter: {column}")
+                if operator not in ALLOWED_FILTER_OPERATORS:
+                    errors.append(f"Unsupported comparison filter operator: {operator}")
 
     for order_spec in plan.get("order_by", []):
         column = order_spec.get("column")
@@ -105,6 +138,9 @@ def validate_plan_dict(plan: dict[str, Any], schema: DatasetSchema) -> Validatio
     limit = plan.get("limit")
     if limit is not None and (not isinstance(limit, int) or limit < 1):
         errors.append("Limit must be null or a positive integer")
+
+    if plan.get("comparisons") and plan.get("aggregations"):
+        errors.append("Plans cannot mix top-level aggregations and comparisons in the same request")
 
     return ValidationResult(is_valid=not errors, errors=errors)
 

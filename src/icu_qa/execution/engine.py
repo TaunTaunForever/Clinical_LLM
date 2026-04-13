@@ -8,6 +8,7 @@ from typing import Any
 import pandas as pd
 
 from icu_qa.execution.aggregations import AGGREGATION_FUNCTIONS
+from icu_qa.execution.comparisons import compare_cohort_metric
 
 
 @dataclass(slots=True)
@@ -25,6 +26,9 @@ class ExecutionEngine:
         self.frame = frame.copy()
 
     def execute(self, plan: dict[str, Any]) -> ExecutionResult:
+        if plan.get("comparisons"):
+            return self._execute_comparisons(plan)
+
         working = self._apply_filters(self.frame, plan.get("filters", []))
         result = self._apply_aggregations(working, plan.get("group_by", []), plan.get("aggregations", []))
 
@@ -43,6 +47,41 @@ class ExecutionEngine:
         metadata = {
             "input_rows": len(self.frame),
             "filtered_rows": len(working),
+            "output_rows": len(result),
+        }
+        return ExecutionResult(result_frame=result.reset_index(drop=True), metadata=metadata)
+
+    def _execute_comparisons(self, plan: dict[str, Any]) -> ExecutionResult:
+        rows: list[dict[str, Any]] = []
+        for comparison in plan.get("comparisons", []):
+            left_filters = comparison.get("left_filters", [])
+            right_filters = comparison.get("right_filters", [])
+            metric = comparison["metric"]
+            metric_column = comparison.get("column", "mortality_flag")
+            left_label = comparison.get("left_label", "left_cohort")
+            right_label = comparison.get("right_label", "right_cohort")
+
+            left_frame = self._apply_filters(self.frame, left_filters)
+            right_frame = self._apply_filters(self.frame, right_filters)
+            rows.append(
+                compare_cohort_metric(
+                    left_frame=left_frame,
+                    right_frame=right_frame,
+                    metric=metric,
+                    column=metric_column,
+                    left_label=left_label,
+                    right_label=right_label,
+                )
+            )
+
+        result = pd.DataFrame(rows)
+        result = self._apply_order_by(result, plan.get("order_by", []))
+        limit = plan.get("limit")
+        if limit is not None:
+            result = result.head(limit)
+        metadata = {
+            "input_rows": len(self.frame),
+            "comparison_count": len(rows),
             "output_rows": len(result),
         }
         return ExecutionResult(result_frame=result.reset_index(drop=True), metadata=metadata)

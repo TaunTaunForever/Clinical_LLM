@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -38,8 +39,30 @@ class Settings:
     training_dataset_name: str = "sepsis_survival_primary_cohort"
     evaluation_dataset_name: str = "sepsis_survival_study_cohort"
     heldout_dataset_name: str = "sepsis_survival_validation_cohort"
-    planner_model_name: str = "TODO_REMOTE_PLANNER"
-    planner_temperature: float = 0.0
+    planner_model_name: str = field(
+        default_factory=lambda: os.getenv("ICU_QA_PLANNER_MODEL", "gpt-4.1-mini")
+    )
+    training_base_model_name: str = field(
+        default_factory=lambda: os.getenv(
+            "ICU_QA_TRAINING_BASE_MODEL",
+            "Qwen/Qwen2.5-3B-Instruct",
+        )
+    )
+    training_artifact_dir: Path = field(default_factory=lambda: Path("artifacts/finetune"))
+    training_output_dir: Path = field(default_factory=lambda: Path("artifacts/training_runs"))
+    planner_api_url: str = field(
+        default_factory=lambda: os.getenv(
+            "ICU_QA_PLANNER_API_URL",
+            "https://api.openai.com/v1/chat/completions",
+        )
+    )
+    planner_api_key: str = field(default_factory=lambda: os.getenv("ICU_QA_PLANNER_API_KEY", ""))
+    planner_timeout_seconds: float = field(
+        default_factory=lambda: float(os.getenv("ICU_QA_PLANNER_TIMEOUT_SECONDS", "60"))
+    )
+    planner_temperature: float = field(
+        default_factory=lambda: float(os.getenv("ICU_QA_PLANNER_TEMPERATURE", "0"))
+    )
     max_rows_preview: int = 5
 
     @property
@@ -60,3 +83,9 @@ class Settings:
 
     def resolved_heldout_data_path(self) -> Path:
         return (self.project_root / self.heldout_data_path).resolve()
+
+    def resolved_training_artifact_dir(self) -> Path:
+        return (self.project_root / self.training_artifact_dir).resolve()
+
+    def resolved_training_output_dir(self) -> Path:
+        return (self.project_root / self.training_output_dir).resolve()

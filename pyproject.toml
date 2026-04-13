@@ -16,6 +16,17 @@ dependencies = [
 dev = [
   "pytest==9.0.2",
 ]
+train = [
+  "accelerate>=1.0.0",
+  "datasets>=3.0.0",
+  "peft>=0.17.0",
+  "torch>=2.4.0",
+  "transformers>=4.48.0",
+  "trl>=0.11.0",
+]
+train_cuda = [
+  "bitsandbytes>=0.45.0",
+]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

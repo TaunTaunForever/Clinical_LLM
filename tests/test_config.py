@@ -10,3 +10,4 @@ def test_settings_use_primary_for_training_and_study_for_evaluation() -> None:
     assert settings.resolved_training_data_path().name.endswith("primary_cohort.csv")
     assert settings.resolved_evaluation_data_path().name.endswith("study_cohort.csv")
     assert settings.resolved_heldout_data_path().name.endswith("validation_cohort.csv")
+    assert settings.training_base_model_name == "Qwen/Qwen2.5-3B-Instruct"

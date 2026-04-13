@@ -7,8 +7,20 @@ def demo_schema() -> DatasetSchema:
         name="demo",
         columns=[
             ColumnSchema(name="age", dtype="int", description="Age"),
-            ColumnSchema(name="mortality_flag", dtype="binary", description="Mortality"),
+            ColumnSchema(
+                name="mortality_flag",
+                dtype="binary",
+                description="Mortality",
+                supported_aggregations=["mortality_rate", "count", "proportion", "mean"],
+            ),
             ColumnSchema(name="sepsis_flag", dtype="binary", description="Sepsis cohort membership"),
+            ColumnSchema(
+                name="episode_number",
+                dtype="int",
+                description="Episode",
+                supports_group_by=False,
+                supported_aggregations=["count"],
+            ),
         ],
     )
 
@@ -44,3 +56,19 @@ def test_validator_rejects_unknown_column() -> None:
     result = validate_plan_dict(plan, demo_schema())
     assert not result.is_valid
     assert any("Unsupported filter column" in error for error in result.errors)
+
+
+def test_validator_rejects_group_by_for_disallowed_column() -> None:
+    plan = valid_plan()
+    plan["group_by"] = ["episode_number"]
+    result = validate_plan_dict(plan, demo_schema())
+    assert not result.is_valid
+    assert any("does not support group_by" in error for error in result.errors)
+
+
+def test_validator_rejects_unsupported_aggregation_for_column() -> None:
+    plan = valid_plan()
+    plan["aggregations"] = [{"name": "std", "column": "mortality_flag", "alias": "std_mortality"}]
+    result = validate_plan_dict(plan, demo_schema())
+    assert not result.is_valid
+    assert any("is not supported for column" in error for error in result.errors)

@@ -38,8 +38,11 @@ def main() -> None:
     for message in planner.build_messages(request):
         print(message)
 
-    print("\nStub plan:")
-    print(planner.plan(request).plan)
+    response = planner.plan(request)
+    print("\nPlanner response:")
+    print(response.plan)
+    if response.validation is not None:
+        print("\nValidation:", response.validation)
 
 
 if __name__ == "__main__":
