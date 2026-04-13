@@ -118,14 +118,3 @@ See [docs/evaluation_plan.md](docs/evaluation_plan.md) for details.
 - [src/icu_qa/execution/engine.py](src/icu_qa/execution/engine.py)
 - [scripts/run_query.py](scripts/run_query.py)
 
-## Current status
-
-This repository has completed Phases 1 through 4 and has started Phase 5. The codebase now includes the deterministic analytics engine, structured planning path, semi-synthetic benchmark generation, fine-tuning artifact exports, and experiment-preparation utilities. The next major step is training and evaluating the fine-tuned planner.
-
-## Next steps
-
-1. Train the first `Qwen/Qwen2.5-3B-Instruct` planner adapter.
-2. Evaluate exact plan match and slot-level accuracy on evaluation and held-out splits.
-3. Add error analysis by question family and complexity.
-4. Decide whether to keep the remote planner only as a baseline/fallback.
-5. Expand benchmark coverage if training error analysis reveals gaps.
